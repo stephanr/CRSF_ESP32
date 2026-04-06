@@ -392,7 +392,6 @@ void CRSF::send_ping() {
 
     //Serial.println("📤 Ping sent");
 }
- 
 
 void CRSF::send_device_info(const char* name, uint8_t parameter) {
 
@@ -736,7 +735,7 @@ void CRSF::send_param_response_CRSF_COMMAND(uint8_t param_id, uint8_t parent, co
     Serial.print(param_id);
     Serial.print(" parent: ");
     Serial.println(parent);
-#endif    
+#endif
 
 }
 
@@ -763,9 +762,9 @@ void CRSF::send_command_MWSET(uint8_t adress, uint8_t state) {
 
     send_packets(packet, len + 2 , 0);
 
-    if (debug) {
-        Serial.println("📤 Command MWSET sent");
-    }
+#if DEBUG_CRSF_SEND
+    Serial.println("📤 Command MWSET sent");
+#endif
 }
 
 void CRSF::send_command_MWSET4(uint8_t adress, uint8_t stateH, uint8_t stateL) {
@@ -915,7 +914,7 @@ void send_command(uint8_t command_id, std::initializer_list<uint8_t> payload) {
     packet[4] = CRSF_ADDRESS_RADIO_TRANSMITTER;
     packet[5] = command_id; // Command ID
 
-   // List_of_payload
+    // List_of_payload
     int packet_count = 6;
     for (uint8_t c : payload) {
         packet[packet_count] = c; 
