@@ -74,6 +74,17 @@
 #define CRSF_VTX 0x0F
 #define CRSF_OUT_OF_RANGE 0x7F
 
+
+// crsf cmd_status
+#define CRSF_COMMAND_READY               0 // --> feedback
+#define CRSF_COMMAND_START               1 //<-- input
+#define CRSF_COMMAND_PROGRESS            2 //--> feedback
+#define CRSF_COMMAND_CONFIRMATION_NEEDED 3 //--> feedback
+#define CRSF_COMMAND_CONFIRM             4 //<-- input
+#define CRSF_COMMAND_CANCEL              5 //<-- input
+#define CRSF_COMMAND_POLL                6 // <-- input
+
+
 struct LinkStatistics {
   uint8_t uplinkRSSI = 0;       // Sender → Empfänger RSSI (dBm)
   uint8_t uplinkLQ = 0;         // Link Quality (%)

@@ -693,6 +693,53 @@ void CRSF::send_param_response_CRSF_INFO(uint8_t param_id, uint8_t parent, const
 #endif    
 }
 
+void CRSF::send_param_response_CRSF_COMMAND(uint8_t param_id, uint8_t parent, const char* name, const char* info) {
+    deviceReadReplyPending = false;
+
+    uint8_t len_name = strlen(name) + 1; // len + null terminator
+    uint8_t len_info = strlen(info) + 1; // len + null terminator
+
+    uint8_t len = 8 + 2 + len_name + len_info;
+    uint8_t packet[64];
+    packet[0] = CRSF_SYNC_byte;   // sync
+    packet[1] = len;    // len
+    packet[2] = CRSF_FRAMETYPE_PARAMETER_SETTINGS_ENTRY;   // type
+    packet[3] = CRSF_ADDRESS_RADIO_TRANSMITTER; 
+    packet[4] = CRSF_ADDRESS_FLIGHT_CONTROLLER;
+    packet[5] = param_id; //config field index, parameter field 03
+    packet[6] = 0x00; // chunks remaining, 0 chunks remaining after this one
+    
+    packet[7] = parent; // Parent folder
+    packet[8] = CRSF_COMMAND; // Data type
+
+    // char[]          Name;           // Null-terminated string
+    // enum cmd_status Status;         // uint8_t
+    // uint8_t         Timeout;        // ms * 100
+    // char[]          Info;           // Null-terminated string
+
+    strcpy((char*)&packet[9], name); // Name
+
+    // TODO unit8_t cmd_status
+    packet[9 + len_name] = CRSF_COMMAND_READY;
+
+    packet[9 + len_name + 1] = 200;
+    // TODO unit8_t Timeout
+
+    strcpy((char*)&packet[9 + len_name + 2], info); // Info
+    
+    packet[packet[1]+1] = crc8(&packet[2], packet[1] - 1);
+
+    send_packets(packet, len + 2 , 0);
+
+#if DEBUG_CRSF_SEND
+    Serial.print("📤 Device Parameter COMMAND sent ID: ");
+    Serial.print(param_id);
+    Serial.print(" parent: ");
+    Serial.println(parent);
+#endif    
+
+}
+
 void CRSF::send_command_MWSET(uint8_t adress, uint8_t state) {
 
     uint8_t len = 9;
@@ -717,7 +764,7 @@ void CRSF::send_command_MWSET(uint8_t adress, uint8_t state) {
     send_packets(packet, len + 2 , 0);
 
     if (debug) {
-       Serial.println("📤 Command MWSET sent");
+        Serial.println("📤 Command MWSET sent");
     }
 }
 
