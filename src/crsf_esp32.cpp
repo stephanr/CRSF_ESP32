@@ -317,7 +317,9 @@ void CRSF::read_packets(uint8_t debug) {
                     Serial.println("");
                 }
             } else {
-                Serial.println("CRC Error");
+                if (debug) {
+                    Serial.println("CRC Error");
+                }
             }
             byte_index = 0;
             continue;
@@ -713,7 +715,10 @@ void CRSF::send_command_MWSET(uint8_t adress, uint8_t state) {
     packet[packet[1]+1] = crc8(&packet[2], packet[1] - 1);
 
     send_packets(packet, len + 2 , 0);
-    Serial.println("📤 Command MWSET sent");
+
+    if (debug) {
+       Serial.println("📤 Command MWSET sent");
+    }
 }
 
 void CRSF::send_command_MWSET4(uint8_t adress, uint8_t stateH, uint8_t stateL) {
