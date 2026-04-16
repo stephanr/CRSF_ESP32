@@ -555,7 +555,6 @@ void CRSF::send_param_response_CRSF_TEXT_SELECTION(uint8_t param_id, uint8_t par
     packet[4] = CRSF_ADDRESS_FLIGHT_CONTROLLER;
     packet[5] = param_id; //crfs_buffer[5]; //config field index, parameter field 03
     packet[6] = 0x00; // chunks remaining, 0 chunks remaining after this one
-    
     packet[7] = parent; // Parent folder
     packet[8] = CRSF_TEXT_SELECTION; // Data type
 
@@ -567,7 +566,6 @@ void CRSF::send_param_response_CRSF_TEXT_SELECTION(uint8_t param_id, uint8_t par
     packet[11 + len_name + len_options] = max; // max
     packet[12 + len_name + len_options] = 0x00; // default
     packet[13 + len_name + len_options] = 0x00; // units (null-terminated string)
-    
     packet[packet[1]+1] = crc8(&packet[2], packet[1] - 1);
 
     send_packets(packet, len + 2, 0);
@@ -579,8 +577,40 @@ void CRSF::send_param_response_CRSF_TEXT_SELECTION(uint8_t param_id, uint8_t par
     Serial.print(parent);
     Serial.print(" Val: ");
     Serial.println(val);
-#endif    
+#endif
 }
+
+void CRSF::send_param_response_CRSF_RAW( uint8_t param_id, uint8_t chunk_remaining, const byte* data, uint8_t len_data) {
+    deviceReadReplyPending = false;
+
+    uint8_t len = 6 + len_data;
+    uint8_t packet[64];
+    packet[0] = CRSF_SYNC_byte;   // sync
+    packet[1] = len;    // len
+    packet[2] = CRSF_FRAMETYPE_PARAMETER_SETTINGS_ENTRY; // type
+    packet[3] = CRSF_ADDRESS_RADIO_TRANSMITTER; 
+    packet[4] = CRSF_ADDRESS_FLIGHT_CONTROLLER;
+    packet[5] = param_id; //crfs_buffer[5]; //config field index, parameter field 03
+    packet[6] = chunk_remaining; // chunks remaining, 0 chunks remaining after this one
+    
+    memcpy(&packet[7], data, len_data);
+    
+    packet[packet[1]+1] = crc8(&packet[2], packet[1] - 1);
+
+    send_packets(packet, len + 2, 0);
+
+// # if DEBUG_CRSF_SEND
+    Serial.print("📤 Device Parameter RAW sent ID: ");
+    Serial.print(param_id);
+    Serial.print(" chunk_remaining: ");
+    Serial.print(chunk_remaining);
+    Serial.print(" len_data: ");
+    Serial.print(len_data);
+    Serial.print(" len ");
+    Serial.println(len);
+// # endif
+}
+
 
 void CRSF::send_param_response_CRSF_STRING(uint8_t param_id, uint8_t parent, const char* name, const char* value, uint8_t val, uint8_t max_length) {
 
