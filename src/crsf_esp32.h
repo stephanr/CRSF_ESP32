@@ -29,7 +29,7 @@ public:
     void send_param_response_CRSF_FOLDER(uint8_t param_id, uint8_t parent, const char* name, std::initializer_list<uint8_t> children);
     void send_param_response_CRSF_INFO(uint8_t param_id, uint8_t parent,  const char* name, const char* info);
     void send_param_response_CRSF_COMMAND(uint8_t param_id, uint8_t parent,  const char* name, const char* info);
-    void send_param_response_CRSF_RAW( uint8_t param_id, uint8_t chunk_remaining, const byte* data, uint8_t len_data);
+    void send_param_response_CRSF_RAW( uint8_t param_id, uint8_t chunk, const byte* data, uint8_t len_data);
 
     void send_command_MWSET(uint8_t adress, uint8_t state);
     void send_command_MWSET4(uint8_t adress, uint8_t stateH, uint8_t stateL);

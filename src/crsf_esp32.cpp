@@ -580,10 +580,16 @@ void CRSF::send_param_response_CRSF_TEXT_SELECTION(uint8_t param_id, uint8_t par
 #endif
 }
 
-void CRSF::send_param_response_CRSF_RAW( uint8_t param_id, uint8_t chunk_remaining, const byte* data, uint8_t len_data) {
+void CRSF::send_param_response_CRSF_RAW( uint8_t param_id, uint8_t chunk, const byte* data, uint8_t len_data) {
+
     deviceReadReplyPending = false;
 
-    uint8_t len = 6 + len_data;
+    uint8_t chunks = (len_data + 55)/56;
+    uint8_t chunklen = 56;
+    if((1 + chunk) == chunks) {
+        chunklen = len_data % 56;
+    }
+    uint8_t len = 6 + chunklen;
     uint8_t packet[64];
     packet[0] = CRSF_SYNC_byte;   // sync
     packet[1] = len;    // len
@@ -591,24 +597,42 @@ void CRSF::send_param_response_CRSF_RAW( uint8_t param_id, uint8_t chunk_remaini
     packet[3] = CRSF_ADDRESS_RADIO_TRANSMITTER; 
     packet[4] = CRSF_ADDRESS_FLIGHT_CONTROLLER;
     packet[5] = param_id; //crfs_buffer[5]; //config field index, parameter field 03
-    packet[6] = chunk_remaining; // chunks remaining, 0 chunks remaining after this one
+    packet[6] = chunks - chunk - 1; // chunks remaining, 0 chunks remaining after this one
     
-    memcpy(&packet[7], data, len_data);
+    uint8_t off = 0;
+    if (chunk == 0) {
+        memcpy(&packet[7], data, chunklen);
+    } else {
+        off = chunk * 56;
+        memcpy(&packet[7], &data[off], chunklen);
+    }
     
     packet[packet[1]+1] = crc8(&packet[2], packet[1] - 1);
 
     send_packets(packet, len + 2, 0);
 
-// # if DEBUG_CRSF_SEND
+
+#if DEBUG_CRSF_SEND
     Serial.print("📤 Device Parameter RAW sent ID: ");
     Serial.print(param_id);
-    Serial.print(" chunk_remaining: ");
-    Serial.print(chunk_remaining);
+    Serial.print(" chunk: ");
+    Serial.print(chunk);
+    Serial.print(" remaining: ");
+    Serial.print(chunks - chunk - 1);
+    Serial.print(" offset: ");
+    Serial.print(off);
     Serial.print(" len_data: ");
     Serial.print(len_data);
     Serial.print(" len ");
     Serial.println(len);
-// # endif
+    
+    Serial.print("package:");
+    for (size_t i = 0; i < len; i++) {
+        Serial.printf(" %02X", packet[i]);
+    }
+    Serial.println();
+#endif
+
 }
 
 
